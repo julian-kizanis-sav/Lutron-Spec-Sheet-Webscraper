@@ -28,7 +28,7 @@ nameCheck = 0       #used for logic
 row = 0             #keeps track of the row
 done = 0
 
-
+#this section uses Selenium to access different parts of Lutron's dynamic website
 try:
     while stopCounter < STOPNUMBER: #allows a small batch to be performed
         ProductCategory = driver.find_element_by_xpath(f"(//a[@class='step1Done'])[{modelCounter}]")    #finds the next model category
@@ -49,34 +49,31 @@ try:
         time.sleep(10)      #sleeps to allow the webpage to buffer/load
     
 
-    page_source = driver.page_source
+    page_source = driver.page_source            #this section uses beautifulSoup to find the data we want
+    soup = BeautifulSoup(page_source, 'lxml')   #creates a beautifulSoup object called soup
     
-    soup = BeautifulSoup(page_source, 'lxml')
-    
-    
-       
+    category = soup.find_all("div", {"class":"lnkCategory"})    #finds all instances that the class 'InkCategory' occurs, this is the section where the category is stored
 
-    category = soup.find_all("div", {"class":"lnkCategory"})
-#    print(category)
-    for cat in category:
+
+    for cat in category:    #cycles through every category found
 #        print(cat)
-        tempCategory = cat.find('a')
+        tempCategory = cat.find('a')    #finds the subsection of the current category directory that stores the category's name
  #       print(tempCategory['name'])
         
-        nameList1 = cat.parent.find_all("td", {"style":"width:15%;"})
+        nameList1 = cat.parent.find_all("td", {"style":"width:15%;"})   #finds all the model numbers and pdfs within the current category
   
-        for name in nameList1: 
-            tempLink = name.find('a')
-            if tempLink == None:
-                if nameCheck == 0:
-                    nameCheck = 1
-                else:
-                    ModelLanguage.insert(row, languagePdf)
-                    ModelPdf.insert(row, pdf)
-                row += 1
-                ModelName.insert(row, name.get_text())    
-                ModelCategory.insert(row, tempCategory['name'])
-            else:
+        for name in nameList1:          #cycles through the model numbers and pdf links
+            tempLink = name.find('a')   #finds the subsection of the current pdf directory that stores the pdf link's url
+            if tempLink == None:        #if there is no subsection, then we are looking at a model number's directory
+                if nameCheck == 0:      #we were previously looknig at a pdf's directory
+                    nameCheck = 1       #we just looked at a model number's directory
+                else:                   #we were previously looknig at a model number's directory
+                    ModelLanguage.insert(row, languagePdf)  #this model's language is the same as the last models
+                    ModelPdf.insert(row, pdf)               #this model's pdf link is the same as the last models
+                row += 1        #next row
+                ModelName.insert(row, name.get_text())          #extracts the model's name from the model's directory
+                ModelCategory.insert(row, tempCategory['name']) #inserts the model's name
+            else:   #we are looking at a pdf's directory
                 languagePdf = name.get_text()
                 pdf = tempLink['href']
                 ModelLanguage.insert(row, languagePdf)   
