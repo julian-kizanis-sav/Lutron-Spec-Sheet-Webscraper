@@ -5,47 +5,48 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 
-driver = webdriver.Chrome()
+driver = webdriver.Chrome() #sets the browser driver
 
-driver.get("http://www.lutron.com/en-US/Service-Support/Pages/Technical/ProductSpecification.aspx")
+driver.get("http://www.lutron.com/en-US/Service-Support/Pages/Technical/ProductSpecification.aspx") #opens Lutron's website
+                                                                        #the models are only accesable when the coraspoding popup is active (hovered over)
+Alphabet = driver.find_element_by_xpath("(//li[@class='hasMore'])[1]")  #Alphabet finds the letters that the mouse has to hover over to open a popup box
 
-Alphabet = driver.find_element_by_xpath("(//li[@class='hasMore'])[1]")
+hover = ActionChains(driver).move_to_element(Alphabet)  #hover hovers the mouse over the current letter
+hover.perform()    #executes the hover command
 
-hover = ActionChains(driver).move_to_element(Alphabet)
-hover.perform()
-
-modelCounter = 1
-letterCounter = 1
-letterStop = 0
-ModelCategory = []
-ModelName = []
-ModelLanguage = []
-ModelPdf = []
-pdf = ""
-languagePdf = ""
-nameCheck = 0
-row = 0
+modelCounter = 1    #every model has a unique number (starting with 1) that can be used to find it
+letterCounter = 1   #keeps track of the current letter
+stopCounter = 0      #allows a small batch to be performed
+STOPNUMBER = 9999   #final number of the batch
+ModelCategory = []  #list of categories
+ModelName = []      #list of Model Names
+ModelLanguage = []  #list of data sheet languages
+ModelPdf = []       #list of datasheet links
+pdf = ""            #temporaraly stores the link
+languagePdf = ""    #temporaraly stores the language
+nameCheck = 0       #used for logic
+row = 0             #keeps track of the row
 done = 0
 
 
 try:
-    while letterStop < 2:
-        ProductCategory = driver.find_element_by_xpath(f"(//a[@class='step1Done'])[{modelCounter}]")
+    while stopCounter < STOPNUMBER: #allows a small batch to be performed
+        ProductCategory = driver.find_element_by_xpath(f"(//a[@class='step1Done'])[{modelCounter}]")    #finds the next model category
     
-        while ProductCategory.is_displayed() == 0:
-            print(f"{modelCounter}    {letterCounter}")
-            Alphabet = driver.find_element_by_xpath(f"(//li[@class='hasMore'])[{letterCounter}]")
-            hover = ActionChains(driver).move_to_element(Alphabet)
-            hover.perform()
-            letterCounter += 1
-        ProductCategory = driver.find_element_by_xpath(f"(//a[@class='step1Done'])[{modelCounter}]")
-        ProductCategory.click()
+        while ProductCategory.is_displayed() == 0:  #is the next model category hidden
+#            print(f"{modelCounter}    {letterCounter}")
+            Alphabet = driver.find_element_by_xpath(f"(//li[@class='hasMore'])[{letterCounter}]")       #Alphabet finds the letters that the mouse has to hover over to open a popup box
+            hover = ActionChains(driver).move_to_element(Alphabet)                                      #hover hovers the mouse over the current letter
+            hover.perform()                                                                             #executes the hover command
+            letterCounter += 1      #adds one to the current letter
+        ProductCategory = driver.find_element_by_xpath(f"(//a[@class='step1Done'])[{modelCounter}]")    #finds the next model category
+        ProductCategory.click()     #clicks the link
         modelCounter += 1
         letterCounter = 1
-        letterStop += 1
+        stopCounter += 1
     
         
-        time.sleep(10)
+        time.sleep(10)      #sleeps to allow the webpage to buffer/load
     
 
     page_source = driver.page_source
@@ -56,8 +57,11 @@ try:
        
 
     category = soup.find_all("div", {"class":"lnkCategory"})
+#    print(category)
     for cat in category:
+#        print(cat)
         tempCategory = cat.find('a')
+ #       print(tempCategory['name'])
         
         nameList1 = cat.parent.find_all("td", {"style":"width:15%;"})
   
