@@ -1,13 +1,7 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import ElementNotInteractableException
 from bs4 import BeautifulSoup
-
-
-import re
+import pandas as pd
 import time
 
 driver = webdriver.Chrome()
@@ -37,19 +31,44 @@ time.sleep(10)
 page_source = driver.page_source
 
 soup = BeautifulSoup(page_source, 'lxml')
-nameList = soup.find_all("td", {"style":"width:15%;"})
-for name in nameList:
-    print(nameList)
-    #print(nameList.get('href'))
 
 
-aaa = driver.find_element_by_xpath("//td[@class='wrapword']/preceding::td")
-print(aaa.find_element_by_css_selector('td').get_attribute('style'))
-if aaa:
-    parenta = aaa.find_element_by_xpath('..')
-print(parenta)
+   
+ModelName = []
+ModelLanguage = []
+ModelPdf = []
+pdf = ""
+languagePdf = ""
+nameCheck = 0
+row = 0
+p = 0
+nameList1 = soup.find_all("td", {"style":"width:15%;"})
+for name in nameList1:    
+    p += 1
+    if p%10 == 0:
+        print(p)
+    tempLink = name.find('a')
+    if tempLink == None:
+        if nameCheck == 0:
+            nameCheck = 1
+        else:
+            ModelLanguage.insert(row, languagePdf)
+            ModelPdf.insert(row, pdf)
+        row += 1
+        ModelName.insert(row, name.get_text())
+    else:
+        languagePdf = name.get_text()
+        pdf = tempLink['href']
+        ModelLanguage.insert(row, languagePdf)   
+        ModelPdf.insert(row, pdf)
+        nameCheck = 0
+
+for elem in range(len(ModelName)):
+    print(ModelName[elem])
+    print(ModelLanguage[elem])
+    print(ModelPdf[elem])
+    print("New Model!!")
     
-    
-#Alphabet3 = driver.find_elements_by_xpath("//td[@class='wrapword']")
-#for ii in Alphabet3:
-#    print(ii.find_element_by_css_selector('a').get_attribute('href'))
+df = pd.DataFrame(list(zip(ModelName, ModelLanguage, ModelPdf)), columns =['Name', 'Language' , 'Url'])
+
+export_csv = df.to_csv (r'C:\Users\Julian.Kizanis\Documents\Lutron Data Sheets\All Data Sheets.csv', header=True) #Don't forget to add '.csv' at the end of the path
