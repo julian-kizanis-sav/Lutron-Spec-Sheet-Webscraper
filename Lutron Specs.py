@@ -14,7 +14,10 @@ Alphabet = driver.find_element_by_xpath("(//li[@class='hasMore'])[1]")
 hover = ActionChains(driver).move_to_element(Alphabet)
 hover.perform()
 
-modelCounter = 1
+modelCounter = 9
+letterCounter = 1
+letterStop = 0
+ModelCategory = []
 ModelName = []
 ModelLanguage = []
 ModelPdf = []
@@ -25,21 +28,25 @@ row = 0
 done = 0
 print("0")
 
-while done == 0:
-    ProductCategory = driver.find_element_by_xpath("(//a[@class='step1Done'])[11]")
-
-    while ProductCategory.is_displayed() == 0:
-        print("1")
-        Alphabet = driver.find_element_by_xpath("(//li[@class='hasMore'])[1]")
-        hover = ActionChains(driver).move_to_element(Alphabet)
-        hover.perform()
-    print("2")
-    ProductCategory = driver.find_element_by_xpath("(//a[@class='step1Done'])[modelCounter]")
-    ProductCategory.click()
-    modelCounter += 1
-
+try:
+    while letterStop < 12:
+        ProductCategory = driver.find_element_by_xpath(f"(//a[@class='step1Done'])[{modelCounter}]")
     
-    time.sleep(10)
+        while ProductCategory.is_displayed() == 0:
+            print("1")
+            Alphabet = driver.find_element_by_xpath(f"(//li[@class='hasMore'])[{letterCounter}]")
+            hover = ActionChains(driver).move_to_element(Alphabet)
+            hover.perform()
+            letterCounter += 1
+        print(ProductCategory)
+        ProductCategory = driver.find_element_by_xpath(f"(//a[@class='step1Done'])[{modelCounter}]")
+        ProductCategory.click()
+        modelCounter += 1
+        letterCounter = 1
+        letterStop += 1
+    
+        
+        time.sleep(10)
     
 
     page_source = driver.page_source
@@ -68,7 +75,7 @@ while done == 0:
             ModelPdf.insert(row, pdf)
             nameCheck = 0
 
-#except NoSuchElementException:    
-print(4)
-df = pd.DataFrame(list(zip(ModelName, ModelPdf)), columns =['Name', 'Url'])
-export_csv = df.to_csv (r'C:\Users\Julian.Kizanis\Documents\Lutron Data Sheets\Ballasts.csv', header=True) #Don't forget to add '.csv' at the end of the path
+except NoSuchElementException:    
+    print(4)
+    df = pd.DataFrame(list(zip(ModelName, ModelPdf)), columns =['Name', 'Url'])
+    export_csv = df.to_csv (r'C:\Users\Julian.Kizanis\Documents\Lutron Data Sheets\Ballasts.csv', header=True) #Don't forget to add '.csv' at the end of the path
