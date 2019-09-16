@@ -56,11 +56,8 @@ try:
        
 
     category = soup.find_all("div", {"class":"lnkCategory"})
-#    print(category)
     for cat in category:
-#        print(cat)
         tempCategory = cat.find('a')
- #       print(tempCategory['name'])
         
         nameList1 = cat.parent.find_all("td", {"style":"width:15%;"})
   
