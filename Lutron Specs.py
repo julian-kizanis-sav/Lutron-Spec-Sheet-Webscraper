@@ -23,6 +23,7 @@ modelNumber = ""
 noSpec = 0
 noCAD = 0
 noRVT = 0
+shortDelay = .5
 
 
 import csv
@@ -114,13 +115,14 @@ for model in ModelNumbers:
 #print(ModelNumbers)
     
 
-driver = webdriver.Chrome()    
+#driver = webdriver.Chrome()    
 for model in ModelNumbers:
     print(model)
+    driver = webdriver.Chrome() 
     modelURL = f"http://www.lutron.com/en-US/pages/supportCenter/support.aspx?modelNumber={model}&&SECTION=Documents"
     driver.get(modelURL)
     
-    time.sleep(20)
+#    time.sleep(20)
     while attempts < 3:
         try:
             soup = BeautifulSoup(driver.page_source, 'lxml')   #creates a beautifulSoup object called soup
@@ -129,18 +131,18 @@ for model in ModelNumbers:
         except NoSuchElementException:
             attempts += 1
             imageURL.insert(modelIndex, "")
-            time.sleep(3)
+            time.sleep(shortDelay)
         except TypeError:
             attempts += 1
             imageURL.insert(modelIndex, "")
-            time.sleep(3)
+            time.sleep(5)
     print(f"imageURL[{modelIndex}]:\t{imageURL[modelIndex]}")
     attempts = 0
     
     while attempts < 3:
         try:
             driver.find_element_by_xpath("(//a[@title='Product Specification Submittals'])").click()    #Product Specification Submittals
-            time.sleep(2)
+            time.sleep(shortDelay)
             if noSpec == 0:
                 
                 try:
@@ -155,7 +157,7 @@ for model in ModelNumbers:
             
            
             driver.find_element_by_xpath("(//a[@title='CAD Downloads'])").click()    #CAD Downloads
-            time.sleep(2)
+            time.sleep(shortDelay)
             if noCAD == 0:
                 try:
                     tempURL = soup.find("a", {"title":"English  (.dwg)"})['href']
@@ -166,7 +168,7 @@ for model in ModelNumbers:
                     CadURL.insert(modelIndex, "")
                     noCAD = 1
 #                    print("No CAD")    
-            time.sleep(.5)
+            time.sleep(shortDelay)
             if noRVT == 0:               
                 try:
                     tempURL = soup.find("a", {"title":"English  (.rvt)"})['href']
@@ -181,7 +183,7 @@ for model in ModelNumbers:
             attempts = 3
         except NoSuchElementException:
             attempts += 1
-            time.sleep(5)  
+            time.sleep(shortDelay)  
             
     if noSpec == 0:
         specURL.insert(modelIndex, "")
@@ -201,6 +203,8 @@ for model in ModelNumbers:
     df = pd.DataFrame(list(zip(OriginalModelNumbers, ModelNumbers, imageURL, specURL, CadURL, RvtURL)), columns =['Model Number', 'Adj Model Number', 'imageURL', 'specURL', 'CadURL', 'RvtURL'])  
     #df is a panda object that contains: ModelCategory, ModelName, ModelPdf
     export_csv = df.to_csv ('LutronSpecSheetCADRVT.csv', header=True) #Don't forget to add '.csv' at the end of the path
+    
+    driver.quit()
     
 df = pd.DataFrame(list(zip(OriginalModelNumbers, ModelNumbers, imageURL, specURL, CadURL, RvtURL)), columns =['Model Number', 'Adj Model Number', 'imageURL', 'specURL', 'CadURL', 'RvtURL'])  
 #df is a panda object that contains: ModelCategory, ModelName, ModelPdf
