@@ -115,14 +115,14 @@ for model in ModelNumbers:
 #print(ModelNumbers)
     
 
-#driver = webdriver.Chrome()    
+driver = webdriver.Chrome()    
 for model in ModelNumbers:
     print(model)
-    driver = webdriver.Chrome() 
+#    driver = webdriver.Chrome() 
     modelURL = f"http://www.lutron.com/en-US/pages/supportCenter/support.aspx?modelNumber={model}&&SECTION=Documents"
     driver.get(modelURL)
     
-#    time.sleep(20)
+    time.sleep(20)
     while attempts < 3:
         try:
             soup = BeautifulSoup(driver.page_source, 'lxml')   #creates a beautifulSoup object called soup
@@ -204,7 +204,7 @@ for model in ModelNumbers:
     #df is a panda object that contains: ModelCategory, ModelName, ModelPdf
     export_csv = df.to_csv ('LutronSpecSheetCADRVT.csv', header=True) #Don't forget to add '.csv' at the end of the path
     
-    driver.quit()
+#    driver.quit()
     
 df = pd.DataFrame(list(zip(OriginalModelNumbers, ModelNumbers, imageURL, specURL, CadURL, RvtURL)), columns =['Model Number', 'Adj Model Number', 'imageURL', 'specURL', 'CadURL', 'RvtURL'])  
 #df is a panda object that contains: ModelCategory, ModelName, ModelPdf
