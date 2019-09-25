@@ -1,3 +1,6 @@
+#SAV Digital Enviroments
+#Julian Kizanis
+
 from selenium import webdriver
 #from selenium.webdriver.common.keys import Keys
 
@@ -114,7 +117,8 @@ for model in ModelNumbers:
     
 #print(ModelNumbers)
     
-
+options = webdriver.ChromeOptions()
+options.add_experimental_option('excludeSwitches', ['enable-logging'])
 driver = webdriver.Chrome()    
 for model in ModelNumbers:
     print(model)
