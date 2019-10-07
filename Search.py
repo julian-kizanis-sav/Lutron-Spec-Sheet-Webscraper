@@ -1,5 +1,7 @@
 #SAV Digital Enviroments
 #Julian Kizanis
+print("Commpany:\tSAV Digital Environments\nDeveloper:\tJulian Kizanis\n\
+Powered By:\tAnaconda\n\n")
 
 from selenium import webdriver
 #from selenium.webdriver.common.keys import Keys
@@ -30,17 +32,19 @@ shortDelay = .5
 
 
 import csv
-
+#converts the csv file to a python list
 with open('LutronModelList.csv', 'r') as f:
     reader = csv.reader(f)
     OriginalModelNumbersTemp = list(reader)
 OriginalModelNumbers = [j for sub in OriginalModelNumbersTemp for j in sub]
 
+#removes some artifacts
 for model in OriginalModelNumbers:
     model.replace("'", "")
     model.replace("'", "")
 
 ModelNumbers = OriginalModelNumbers
+#lutron doesn't include color information on their spec sheet names
 i = -1
 for model in ModelNumbers:
     i += 1    
@@ -119,49 +123,51 @@ for model in ModelNumbers:
     
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-driver = webdriver.Chrome()    
-for model in ModelNumbers:
+driver = webdriver.Chrome()    #opens a chrome browser
+for model in ModelNumbers:	#cycles through the the models 
     print(model)
 #    driver = webdriver.Chrome() 
+	#opens the website of the model_______________________________________________________{here}__________________
     modelURL = f"http://www.lutron.com/en-US/pages/supportCenter/support.aspx?modelNumber={model}&&SECTION=Documents"
     driver.get(modelURL)
     
-    time.sleep(20)
-    while attempts < 3:
+    time.sleep(20)	#lutron is a very slow website
+    while attempts < 3:	#improves stability
         try:
             soup = BeautifulSoup(driver.page_source, 'lxml')   #creates a beautifulSoup object called soup
-            imageURL.insert(modelIndex, soup.find("img", {"class":"img-responsive center-block"})['src'])
-            attempts = 3
-        except NoSuchElementException:
-            attempts += 1
-            imageURL.insert(modelIndex, "")
-            time.sleep(shortDelay)
+            imageURL.insert(modelIndex, soup.find("img", {"class":"img-responsive center-block"})['src'])	#finds the model's image and inserts it in the imageURL list
+            attempts = 3	#found it!!
+        except NoSuchElementException:	#can't find it
+            attempts += 1	
+            imageURL.insert(modelIndex, "")	#insert a blank entry for now
+            time.sleep(shortDelay)#chances are the lutron website isn't loaded yet
         except TypeError:
             attempts += 1
             imageURL.insert(modelIndex, "")
             time.sleep(5)
     print(f"imageURL[{modelIndex}]:\t{imageURL[modelIndex]}")
-    attempts = 0
+    attempts = 0	#reset attempts
     
     while attempts < 3:
         try:
-            driver.find_element_by_xpath("(//a[@title='Product Specification Submittals'])").click()    #Product Specification Submittals
+            driver.find_element_by_xpath("(//a[@title='Product Specification Submittals'])").click()    #finds and clicks Product Specification Submittals
             time.sleep(shortDelay)
-            if noSpec == 0:
+            if noSpec == 0:	#We don't know if there is a spec sheet
                 
                 try:
-                    tempURL = soup.find("a", {"title":"English  (.pdf)"})['href']
-                    specURL.insert(modelIndex, f"http://www.lutron.com{tempURL}")  
-                    noSpec = -1
+                    tempURL = soup.find("a", {"title":"English  (.pdf)"})['href']	#look for a spec sheet
+                    specURL.insert(modelIndex, f"http://www.lutron.com{tempURL}")  #found one, record it
+                    noSpec = -1	#we already found one
 #                    print("Spec")
-                except TypeError:
-                    specURL.insert(modelIndex, "")
-                    noSpec = 1
+                except TypeError:	#there is no spec sheet
+                    specURL.insert(modelIndex, "")	#insert a blank cell
+                    noSpec = 1	#there is no spec sheet
 #                    print("No Spec")
             
            
-            driver.find_element_by_xpath("(//a[@title='CAD Downloads'])").click()    #CAD Downloads
+            driver.find_element_by_xpath("(//a[@title='CAD Downloads'])").click()    #finds and clicks CAD Downloads
             time.sleep(shortDelay)
+			#looking for a DWG file, process the same as for spec sheet
             if noCAD == 0:
                 try:
                     tempURL = soup.find("a", {"title":"English  (.dwg)"})['href']
@@ -173,6 +179,7 @@ for model in ModelNumbers:
                     noCAD = 1
 #                    print("No CAD")    
             time.sleep(shortDelay)
+			#looking for a RVT file, process the same as for spec sheet
             if noRVT == 0:               
                 try:
                     tempURL = soup.find("a", {"title":"English  (.rvt)"})['href']
@@ -188,7 +195,7 @@ for model in ModelNumbers:
         except NoSuchElementException:
             attempts += 1
             time.sleep(shortDelay)  
-            
+    #resetting for the next model        
     if noSpec == 0:
         specURL.insert(modelIndex, "")
     if noCAD == 0:
@@ -204,13 +211,14 @@ for model in ModelNumbers:
     attempts = 0
     modelIndex += 1
     
+	#creates a csv file of everything we've gathered
     df = pd.DataFrame(list(zip(OriginalModelNumbers, ModelNumbers, imageURL, specURL, CadURL, RvtURL)), columns =['Model Number', 'Adj Model Number', 'imageURL', 'specURL', 'CadURL', 'RvtURL'])  
     #df is a panda object that contains: ModelCategory, ModelName, ModelPdf
-    export_csv = df.to_csv ('LutronSpecSheetCADRVT.csv', header=True) #Don't forget to add '.csv' at the end of the path
+    export_csv = df.to_csv ('LutronSpecSheetCADRVT.csv', header=True)
     
 #    driver.quit()
-    
+#creates a csv file of everything we've gathered   
 df = pd.DataFrame(list(zip(OriginalModelNumbers, ModelNumbers, imageURL, specURL, CadURL, RvtURL)), columns =['Model Number', 'Adj Model Number', 'imageURL', 'specURL', 'CadURL', 'RvtURL'])  
 #df is a panda object that contains: ModelCategory, ModelName, ModelPdf
-export_csv = df.to_csv ('Lutron SpecSheet CAD RVT.csv', header=True) #Don't forget to add '.csv' at the end of the path
+export_csv = df.to_csv ('Lutron SpecSheet CAD RVT.csv', header=True)
 
